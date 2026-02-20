@@ -2,6 +2,13 @@ import React from 'react'
 import { useState } from 'react'
 import TodoItem from '../components/TodoItem'
 import { useEffect } from 'react'
+import { useMemo } from 'react'
+import { useCallback } from 'react'
+import { useRef } from 'react'
+// UUID 가져오기
+import { v4 as uuidv4 } from 'uuid';
+// Nanoid 가져오기
+import { nanoid } from 'nanoid';
 
 const Home = () => {
     // 🧊 state
@@ -18,41 +25,71 @@ const Home = () => {
 
     // ✨ 이벤트 핸들러
     // - 할일 완료 토글
-    const handleToggle = (id) => {
-        const newTodos = todos.map(
-            todo => todo.id === id
-            ? { ...todo, completed: !todo.completed }
-            : todo            
-        )
-        // ⭐ 상태 업데이트
-        setTodos( newTodos )
-    }
+    const handleToggle = useCallback((id) => {
+        setTodos(
+            prev => prev.map(todo => todo.id === id
+                                ?{...todo, completed: !todo.completed }
+                                : todo
+            )
+        );
+    }, []);
+    
 
     // - 할일 삭제
-    const handleDelete = (id) => {
-        const newTodos = todos.filter(todo => todo.id !== id)
+    const handleDelete = useCallback((id) => {
+        // const newTodos = todos.filter(todo => todo.id !== id)
         // 상태 업데이트
-        setTodos( newTodos)
-    }
+        // setTodos( newTodos ) 
+
+        // ✨ 이전 상태를 확인하여 완료여부 체크
+        setTodos(
+            prev => prev.filter( todo => todo.id !== id )
+        )
+    }, [],)
+    
+
+    // ⭐ useRef
+    const inputRef = useRef(null);
 
     // - 할일 추가
-    const handleAdd = () => {
+    const handleAdd = useCallback( () => {
         // 입력 값이 없으면 추가 안함
         if(!text.trim())return
 
-        const newTodos = [
-            ...todos,
-            { id: Date.now(), text: text, completed: false }
-        ]
+        //const newTodos = [
+        //    ...todos,
+        //    { id: Date.now(), text: text, completed: false }
+        //]
 
         // ⭐ 상태 업데이트
-        setTodos( newTodos )
+        //setTodos( newTodos )
+
+        setTodos(
+            // 🔑 uuid
+            // prev => [ ...prev, { id: uuidv4(), text: text, completed: false } ]
+            // 🔑 nanoid
+            prev => [ ...prev, { id: nanoid(), text: text, completed: false } ]
+        );
+
+        // 할일 입력창 비우기
         setText("")
-    }
+
+        // 추가 후 입력창에 포커스
+        inputRef.current.focus()
+    }, [text] )
 
     // 할일 전체 개수와 완료된 개수
-    const total = todos.length;
-    const completed = todos.filter(todo => todo.completed).length;
+    //const total = todos.length;
+    //const completed = todos.filter(todo => todo.completed).length;
+    // ➡ useMemo 로 전환
+
+    // ⭐ useMemo
+    // : 메모이제이션 기법을 적용해서 이전에 계산된 결과를 메모해놓고 재사용
+    const stats = useMemo(() => {
+        const total = todos.length
+        const completed = todos.filter( todo => todo.completed ).length;
+        return { total, completed }
+    }, [todos]);    // 🧊 todos 가 변할 때마다 재계산(이전에 했으면 계산❌)
 
     // 검색어가 포함된 할일 목록
     const searchedTodos = todos.filter(todo => 
@@ -73,6 +110,7 @@ const Home = () => {
         <h1>Todo List 앱</h1>
 
         <input 
+            ref={inputRef}
             type="text"
             placeholder='할 일 입력'
             value={text}
@@ -89,7 +127,7 @@ const Home = () => {
             onChange={e => setSearch(e.target.value)}
         />
 
-        <h3>전체 : {total} / 완료 : {completed} </h3>
+        <h3>전체 : {stats.total} / 완료 : {stats.completed} </h3>
 
         {
             searchedTodos.map(todo => (

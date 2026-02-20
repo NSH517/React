@@ -12,3 +12,8 @@ npm run dev
 ```
 npm install
 ```
+
+## React 아우터 라이브러리
+```
+npm install react-router-dom
+```
