@@ -3,12 +3,17 @@ import React from 'react'
 const Card = ({ todo, onToggle, onRemove }) => {
 
   let { id, name, status } = todo
+
+  // let id = todo.id
+  // let name = todo.name
+  // let status = todo.status
+  
   let isActive = status ? 'todoItem active' : 'todoItem'
 
   return (
     <li className={isActive}>
       <div className="item">
-        <input type="checkbox"
+        <input type="checkbox" 
           id={id}
           checked={status}
           onChange={ () => onToggle(todo) }
@@ -17,11 +22,11 @@ const Card = ({ todo, onToggle, onRemove }) => {
         <span>{ name }</span>
       </div>
       <div className="item">
-        <button 
-        className="btn"
-        onClick={ () => onRemove(id) }
-        >
-          삭제
+        <button
+          className='btn'
+          onClick={ () => onRemove(id) }
+          >
+            삭제
         </button>
       </div>
     </li>

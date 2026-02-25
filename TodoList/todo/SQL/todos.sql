@@ -1,3 +1,4 @@
+-- Active: 1767840807398@@127.0.0.1@3306@aloha
 CREATE TABLE `todos` (
     `no` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'PK',
     `id` VARCHAR(64) NOT NULL COMMENT 'UK',
@@ -20,5 +21,17 @@ VALUES
 ( UUID(), '할 일 샘플 데이터', false),
 ( UUID(), '할 일 샘플 데이터', true)
 ;
+
+-- 샘플 데이터  100건
+INSERT INTO todos ( id, name, status )
+SELECT
+    UUID(),
+    CONCAT('할 일 샘플 데이터', T.num),
+    IF(t.num % 2 = 0, true, false)
+FROM (
+    SELECT @row := @row + 1 AS num
+    FROM information_schema.tables, (SELECT @row := 0) r
+    LIMIT 100
+) t; 
 
 SELECT * FROM todos;
