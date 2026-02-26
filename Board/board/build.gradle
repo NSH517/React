@@ -11,7 +11,7 @@ description = 'Demo project for Spring Boot'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(23)
+		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
 
@@ -26,7 +26,6 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.5'
 	compileOnly 'org.projectlombok:lombok'
@@ -37,6 +36,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.5'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	// pagehelper
+	implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:2.1.0'
 }
 
 tasks.named('test') {
