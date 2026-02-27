@@ -14,11 +14,11 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="content" column="content" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
-        <association property="file" column="id" javaType="Files" select="selectMainFile"></assosciation>
+        <association property="file" column="id" javaType="Files" select="selectMainFile"></association>
         <collection property="fileList" column="id" ofType="Files" select="fileList"></collection>
     </resultMap>
 
-    <select id="list" resultMaap="BoardMap">
+    <select id="list" resultMap="BoardMap">
         SELECT *
         FROM boards
         ORDER BY no DESC
@@ -30,7 +30,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         WHERE no = #{no}
     </select>
 
-    <select id="selectById" resultMap="boardMap">
+    <select id="selectById" resultMap="BoardMap">
         SELECT *
         FROM boards
         WHERE id = #{id}
@@ -74,14 +74,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         WHERE id = #{id}
     </delete>
 
-    <select id="selectmainFile" resultType="Files">
+    <select id="selectMainFile" resultType="Files">
         SELECT * 
         FROM files 
         WHERE p_id = #{id} AND type ='MAIN'
         LIMIT 0, 1
     </select>
 
-    <select id="fileList" resulttype="Files">
+    <select id="fileList" resultType="Files">
         SELECT *
         FROM files
         WHERE p_id = #{id} AND type = 'SUB'
