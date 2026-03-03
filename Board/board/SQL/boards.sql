@@ -1,3 +1,4 @@
+-- Active: 1772523695263@@127.0.0.1@3306@aloha
 DROP TABLE IF EXISTS `boards`;
 
 CREATE TABLE `boards` (

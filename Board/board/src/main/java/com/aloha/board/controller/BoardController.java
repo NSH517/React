@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 // @CrossOrigin(origins = "http://localhost:5173"))     // CORS
 @CrossOrigin("*")
 @Controller
-@RequestMapping("/board")
+@RequestMapping("/boards")
 @RequiredArgsConstructor
 public class BoardController {
 
@@ -56,16 +56,27 @@ public class BoardController {
             response.put("list", pageInfo.getList());
             response.put("pagination", pagination);
             return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
+       } catch (Exception e) {
+            log.error("getAll() 에러: ", e);  // ⭐ 추가
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<?> getOne(@PathVariable("id") String id) {
+    public ResponseEntity<?> getOne(
+        @PathVariable("id") String id,
+        Files file
+    ) {
         try {
+            // 게시글
             Boards board = boardService.selectById(id);
-            return new ResponseEntity<>(board, HttpStatus.OK);
+            file.setPId(id);
+            // 파일 목록
+            List<Files> fileList = fileService.listByParent(file);
+            Map<String, Object> response = new HashMap<>();
+            response.put("board", board);
+            response.put("fileList", fileList);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
