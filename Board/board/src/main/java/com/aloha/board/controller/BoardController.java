@@ -106,7 +106,7 @@ public class BoardController {
     try {
       boolean result = boardService.insert(board);
       if( result )
-        return new ResponseEntity<>(board, HttpStatus.CREATED);
+        return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
       else 
         return new ResponseEntity<>("FAIL", HttpStatus.BAD_REQUEST);
     } catch (Exception e) {
@@ -154,7 +154,7 @@ public class BoardController {
   }
   
   @PutMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> updateJSON(Boards board) {
+  public ResponseEntity<?> updateJSON(@RequestBody Boards board) {
     try {
       boolean result = boardService.updateById(board);
       if( result )
