@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.aloha.board.domain.Boards;
 import com.aloha.board.domain.Files;
@@ -28,134 +29,190 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-// @CrossOrigin(origins = "http://localhost:5173"))     // CORS
+// @CrossOrigin(origins = "http://localhost:5173")    // CORS
 @CrossOrigin("*")
-@Controller
-@RequestMapping("/boards")
 @RequiredArgsConstructor
+@RestController
+@RequestMapping("/boards")
 public class BoardController {
 
-    private final BoardService boardService;
-    private final FileService fileService;
+  private final BoardService boardService;
+  private final FileService fileService;
 
-    // sp-crud
+  // ✨sp-crud
+  // /boards?page=1&size=10
+  @GetMapping()
+  public ResponseEntity<?> getAll(
+    @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+    @RequestParam(value = "size", required = false, defaultValue = "10") int size,
+    Pagination pagination
+  ) {
+      try {
+        PageInfo<Boards> pageInfo = boardService.page(page, size);
+        pagination.setPage(page);
+        pagination.setSize(size);
+        pagination.setTotal(pageInfo.getTotal());
+        Map<String, Object> response = new HashMap<>();
+        response.put("list", pageInfo.getList());
+        response.put("pagination", pagination);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+      } catch (Exception e) {
+          return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+  }
+  
+  @GetMapping("/{id}")
+  public ResponseEntity<?> getOne(
+    @PathVariable("id") String id,
+    Files file
+  ) {
+    try {
+        // 게시글
+        Boards board = boardService.selectById(id);
+        file.setPId(id);
+        // 파일 목록
+        List<Files> fileList = fileService.listByParent(file);
+        Map<String, Object> response = new HashMap<>();
+        response.put("board", board);
+        response.put("fileList", fileList);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+      } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+  }
+  
+  @PostMapping(value = "", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+  public ResponseEntity<?> create(Boards board) {
+    try {
+      boolean result = boardService.insert(board);
+      if( result )
+        return new ResponseEntity<>(board, HttpStatus.CREATED);
+      else 
+        return new ResponseEntity<>("FAIL", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
+  /**
+   * @RequestBody 붙일 때 안 붙일 때 차이
+   * - @RequestBody ⭕ : application/json, application/xml
+   * - @RequestBody ❌ : multipart/form-data, application/x-www-form-urlencoded
+   * @param board
+   * @return
+   */
+  @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<?> createMultipartForm(Boards board) {
+    try {
+      boolean result = boardService.insert(board);
+      if( result )
+        return new ResponseEntity<>(board, HttpStatus.CREATED);
+      else 
+        return new ResponseEntity<>("FAIL", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
+  @PostMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> createJSON(@RequestBody Boards board) {
+    try {
+      boolean result = boardService.insert(board);
+      if( result )
+        return new ResponseEntity<>(board, HttpStatus.CREATED);
+      else 
+        return new ResponseEntity<>("FAIL", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
+  @PutMapping(value = "", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+  public ResponseEntity<?> update(Boards board) {
+    try {
+      boolean result = boardService.updateById(board);
+      if( result )
+        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
+      else 
+        return new ResponseEntity<>("FAIL", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
+  @PutMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<?> updateMultiPartForm(Boards board) {
+    try {
+      boolean result = boardService.updateById(board);
+      if( result )
+        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
+      else 
+        return new ResponseEntity<>("FAIL", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
+  @PutMapping(value = "", consumes = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> updateJSON(Boards board) {
+    try {
+      boolean result = boardService.updateById(board);
+      if( result )
+        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
+      else 
+        return new ResponseEntity<>("FAIL", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  
+  @DeleteMapping("/{id}")
+  public ResponseEntity<?> destroy(@PathVariable("id") String id) {
+    try {
+      boolean result = boardService.deleteById(id);
+      if( result )
+        return new ResponseEntity<>("SUCCESS", HttpStatus.OK);
+      else 
+        return new ResponseEntity<>("FAIL", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
-    
-    @GetMapping()
-    public ResponseEntity<?> getAll(
-        @RequestParam(value = "page", required = false, defaultValue = "1") int page,
-        @RequestParam(value = "size", required = false, defaultValue = "10") int size,
-        Pagination pagination
-    ) {
-        try {
-            PageInfo<Boards> pageInfo = boardService.page(page, size);
-            pagination.setPage(page);
-            pagination.setSize(size);
-            pagination.setTotal(pageInfo.getTotal());
-            Map<String, Object> response = new HashMap<>();
-            response.put("list", pageInfo.getList());
-            response.put("pagination", pagination);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-       } catch (Exception e) {
-            log.error("getAll() 에러: ", e);  // ⭐ 추가
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+  /**
+   * 게시글 첨부 파일 목록
+   * 🔗 /boards/{id}/files
+   * @param param
+   * @return
+   */
+  @GetMapping("{id}/files")
+  public ResponseEntity<?> boardFileList(
+    @PathVariable("id") String id,
+    @RequestParam(value = "type", required = false) String type
+  ) {
+    try {
+      Files file = new Files();
+      file.setPId(id);
+      file.setType(type);
+      // type 이 없을 때 ➡ 부모 기준 모든 파일
+      if( type == null ) {
+        List<Files> list = fileService.listByParent(file);
+        return new ResponseEntity<>(list, HttpStatus.OK);
+      }
+      // type : "MAIN" ➡ 메인파일 1개
+      if( type.equals("MAIN") ) {
+        Files mainFile = fileService.selectByType(file);
+        return new ResponseEntity<>(mainFile, HttpStatus.OK);
+      }
+      // type : "SUB", ? ➡ 타입볍 파일 목록
+      else {
+        List<Files> list = fileService.listByType(file);
+        return new ResponseEntity<>(list, HttpStatus.OK);
+      }
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getOne(
-        @PathVariable("id") String id,
-        Files file
-    ) {
-        try {
-            // 게시글
-            Boards board = boardService.selectById(id);
-            file.setPId(id);
-            // 파일 목록
-            List<Files> fileList = fileService.listByParent(file);
-            Map<String, Object> response = new HashMap<>();
-            response.put("board", board);
-            response.put("fileList", fileList);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    
-    @PostMapping()
-    public ResponseEntity<?> create(@RequestBody Boards board) {
-        try {
-            boolean result = boardService.insert(board);
-            if( result )
-                return new ResponseEntity<>(board, HttpStatus.CREATED);
-            else
-                return new ResponseEntity<>("FAIL",HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    
-    @PutMapping()
-    public ResponseEntity<?> update(@RequestBody Boards board) {
-        try {
-            boolean result = boardService.updateById(board);
-            if( result )
-                return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
-            else
-                return new ResponseEntity<>("FAIL",HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> destroy(@PathVariable("id") String id) {
-        try {
-            boolean result = boardService.deleteById(id);
-            if( result )
-                return new ResponseEntity<>("SUCCESS", HttpStatus.CREATED);
-            else
-                return new ResponseEntity<>("FAIL",HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    /**
-     * 게시글 첨부 파일 목록
-     * 🔗 /boards/{id}/files
-     * @param param
-     * @return
-     */
-    @GetMapping("{id}/files")
-    public ResponseEntity<?> boardFileList(
-        @PathVariable("id") String id,
-        @RequestParam(value = "type", required = false) String type
-    ) {
-        try {
-            Files file = new Files();
-            file.setPId(id);
-            file.setType(type);
-            // type 이 없을 때 ➡ 부모 기준 모든 파일
-            if( type == null ) {
-                List<Files> list = fileService.listByParent(file);
-                return new ResponseEntity<>(list, HttpStatus.OK);
-            }
-            // type : "MAIN" ➡ 메인파일 1개
-            if( type.equals("MAIN") ) {
-                Files mainFile = fileService. selectByType(file);
-                return new ResponseEntity<>(mainFile, HttpStatus.OK);
-            }
-            // type : "SUB", ? ➡ 타입별 파일 목록
-            else {
-                List<Files> list = fileService.listByType(file);
-                return new ResponseEntity<>(list, HttpStatus.OK);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    
-    
-    
+  }
+  
+  
 }

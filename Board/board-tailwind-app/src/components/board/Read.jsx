@@ -5,10 +5,12 @@ import React from 'react'
 import { Link, useParams } from 'react-router-dom'
 import useBoard from '../../hooks/useBoard'
 import FileItem from '../common/FileItem'
+import { useFileDownload } from '../../hooks/useFileDownload'
 
 const Read = () => {
     const { id } = useParams()
     const { board, fileList, isLoading, isError } = useBoard(id)
+    const { download } = useFileDownload()
 
 
 
@@ -28,6 +30,7 @@ const Read = () => {
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
         <CKEditor
           editor={ClassicEditor}
+          data={board?.content || ''}
           disabled
           config={{ toolbar: [] }}
         />
@@ -46,7 +49,7 @@ const Read = () => {
                             <FileItem
                                 key={file.id}
                                 file={file}
-                                
+                                onDownload={download}
                             />
                         ))
                     }

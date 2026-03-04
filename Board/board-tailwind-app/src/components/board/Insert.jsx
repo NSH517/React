@@ -1,18 +1,39 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { CKEditor } from '@ckeditor/ckeditor5-react'
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic'
 import { ImageIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useBoardMutations } from '../../hooks/useBoardMutations'
+import { useForm } from 'react-hook-form'
 
 const Insert = () => {
+    const navigate = useNavigate()
+    const contentRef = useRef('')
+    const { insertBoard, isInserting } = useBoardMutations()
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm()
+
+    const onSubmit = (data) => {
+        const formData = new FormData()
+        formData.append('title', data.title)
+        formData.append('writer', data.writer)
+        formData.append('content', contentRef.current)
+
+        insertBoard(formData, { 'Content-Type': 'multipart/form-data' })
+    }
 
     const inputClass =
     `w-full px-3 py-2 text-sm border border-gray-200 rounded outline-none
      focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition bg-white
     `
   return (
-    <form noValidate>
+    <form noValidate onSubmit={handleSubmit(onSubmit)}>
         <div className='flex items-center justify-center mb-5'>
-            <h1 className='text-3xl font-semibold text-gray-900 '>글쓰기</h1>
+            <h1 className='text-3xl font-semibold text-gray-900 text-center'>글쓰기</h1>
         </div>
 
         <div className='bg-white rounded-xl border border-gray-200 divide-y divide-gray-100'>
@@ -25,8 +46,13 @@ const Insert = () => {
                     <input
                         placeholder='제목을 입력해주세요'
                         className={inputClass}
+                        {...register('title', {required: '제목을 입력해주세요.'})}
                     />
-                    <p className='mt-1 text-xs text-red-500'>유효한 값을 입력하세요.</p>
+                    {
+                        errors.title && (
+                            <p className='mt-1 text-xs text-red-500'>{errors.title.message}</p>
+                        )
+                    }
                 </div>
             </div>
 
@@ -37,10 +63,15 @@ const Insert = () => {
                 </label>
                 <div className='flex-1'>
                     <input
-                        placeholder='작성자을 입력해주세요'
+                        placeholder='작성자를 입력해주세요'
                         className={inputClass}
+                        {...register('writer', {required: '작성자를 입력해주세요'})}
                     />
-                    <p className='mt-1 text-xs text-red-500'>유효한 값을 입력하세요.</p>
+                    {
+                        errors.writer && (
+                            <p className='mt-1 text-xs text-red-500'>{errors.writer.message}</p>
+                        )
+                    }
                 </div>
             </div>
 
@@ -60,6 +91,9 @@ const Insert = () => {
                             'link', 'imageUpload', 'mediaEmbed', '|',
                             'blockQuote', 'code',
                         ],
+                    }}
+                    onChange={(_, editor) => {
+                        contentRef.current = editor.getData()
                     }}
                 />
             </div>
@@ -81,9 +115,9 @@ const Insert = () => {
                     <span className='text-xs text-gray-300'>
                         JPG, PNG, GIF, WEBP
                     </span>
-                </div>
                 {/* 파일 입력 */}
                 <input type="file" accept='image/*' className='hidden' />
+                </div>
             </div>
         
             {/* 첨부 파일 업로드 영역 */}
@@ -101,7 +135,7 @@ const Insert = () => {
         </div>
 
         {/* 버튼 */}
-        <div className='flex items-center justify-between gap-2 mt-6'>
+        <div className='flex items-center justify-between gap-2 mt-6 mb-6'>
             <button
                 type='button'
                 className='px-4 py-2 w-full text-sm font-medium text-gray-700 bg-white border border-gray-200
@@ -111,10 +145,11 @@ const Insert = () => {
             </button>
             <button
                 type='submit'
+                disabled={isInserting}
                 className='px-4 py-2 w-full text-sm font-medium text-white bg-blue-500
                            rounded-lg hover:bg-blue-600 transition-colors cursor-pointer'
             >
-                저장
+                { isInserting ? '저장 중...' : '저장'}
             </button>
         </div>
     </form>
